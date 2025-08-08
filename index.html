@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>The Wedding of — Elegance in Maroon</title>
+  <meta name="description" content="Undangan pernikahan digital bergaya maroon elegan, responsif, dan ringan." />
+  <meta name="theme-color" content="#6b0f1a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="animations.css" />
+</head>
+<body class="no-scroll"><!-- lock scroll saat cover tampil -->
+  <!-- Splash / Cover -->
+  <div id="cover" class="cover" aria-modal="true" role="dialog" data-state="enter">
+    <!-- layer bunga -->
+    <div class="petals" aria-hidden="true"></div>
+
+
+    <div class="cover__card pop-in">
+      <p class="eyebrow">The Wedding of</p>
+      <h1 id="brideGroomCover" class="display">Nama &amp; Nama</h1>
+      <p class="to">Kepada Yth:<br><strong id="guestName">Bapak/Ibu/Saudara/i</strong></p>
+      <button id="openInvitation" class="btn btn--light">Buka Undangan</button>
+    </div>
+  </div>
+
+  <!-- Musik (opsional) -->
+  <audio id="bgm" loop preload="auto">
+    <source src="./assets/music.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- Header (akan disembunyikan setelah buka undangan) -->
+  <header class="site-header">
+    <div class="container header__inner">
+      <a href="#hero" class="brand" aria-label="Beranda">H &amp;I</a>
+      <nav>
+        <button class="nav__toggle" aria-expanded="false" aria-controls="nav" aria-label="Buka menu">
+          <span></span><span></span><span></span>
+        </button>
+        <ul id="nav" class="nav">
+          <li><a href="#hero">Home</a></li>
+          <li><a href="#date">Tanggal</a></li>
+          <li><a href="#event">Acara</a></li>
+          <li><a href="#story">Love Story</a></li>
+          <li><a href="#gift">Gift</a></li>
+          <li><a href="#rsvp" class="btn btn--small">RSVP</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main id="hero" class="hero section">
+    <div class="container hero__grid">
+      <div class="hero__text">
+        <p class="eyebrow">The Wedding of</p>
+        <h2 id="brideGroom" class="display">Nama <span class="amp">&amp;</span> Nama</h2>
+        <p id="dateBadge" class="date-badge">DD . MM . YY</p>
+        <blockquote class="verse">
+          “Dan di antara tanda‑tanda (kebesaran)-Nya ialah Dia menciptakan pasangan‑pasangan untukmu …”
+          <footer>— QS. Ar‑Rum: 21</footer>
+        </blockquote>
+      </div>
+      <div class="hero__monogram" aria-hidden="true">
+        <span>H</span><span>&</span><span>I</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Mempelai -->
+  <section class="section section--alt">
+    <div class="container couples">
+      <div class="person">
+        <h3 id="brideName" class="name">Nama Mempelai Wanita</h3>
+        <p id="brideMeta" class="meta">Gelar / Pekerjaan</p>
+        <p id="brideParents" class="parents">Putri dari Bapak X &amp; Ibu Y</p>
+        <p class="social"><a id="brideIG" href="#" target="_blank" rel="noopener">Instagram</a></p>
+      </div>
+      <div class="amp">&amp;</div>
+      <div class="person">
+        <h3 id="groomName" class="name">Nama Mempelai Pria</h3>
+        <p id="groomMeta" class="meta">Gelar / Pekerjaan</p>
+        <p id="groomParents" class="parents">Putra dari Bapak A &amp; Ibu B</p>
+        <p class="social"><a id="groomIG" href="#" target="_blank" rel="noopener">Instagram</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Save the date + Countdown -->
+  <section id="date" class="section">
+    <div class="container">
+      <h2 class="title">Save The Date</h2>
+      <ul id="countdown" class="countdown" aria-label="Hitung mundur ke tanggal acara">
+        <li><span id="dd">00</span><small>Hari</small></li>
+        <li><span id="hh">00</span><small>Jam</small></li>
+        <li><span id="mm">00</span><small>Menit</small></li>
+        <li><span id="ss">00</span><small>Detik</small></li>
+      </ul>
+      <p class="inv-text">
+        Dengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk menghadiri acara pernikahan kami.
+      </p>
+    </div>
+  </section>
+
+  <!-- Event detail -->
+  <section id="event" class="section section--alt">
+    <div class="container cards">
+      <article class="card">
+        <h3>Engagement</h3>
+        <p class="day" id="akadDay">Hari</p>
+        <p class="date" id="akadDate">Tanggal</p>
+        <p class="time" id="akadTime">Jam</p>
+        <p class="place" id="akadPlace">Lokasi</p>
+        <p class="addr" id="akadAddr">Alamat lengkap</p>
+        <a id="akadMap" class="btn btn--outline" target="_blank" rel="noopener" href="#">Google Map</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- RSVP & Wishes -->
+  <section id="rsvp" class="section section--alt">
+    <div class="container rsvp">
+      <div>
+        <h2 class="title">Wishes</h2>
+        <form id="wishForm" class="wish-form" autocomplete="on">
+          <label>Nama<input id="name" name="name" type="text" required></label>
+          <label>Ucapan<textarea id="message" name="message" rows="3" minlength="2" required></textarea></label>
+          <button class="btn" type="submit">Kirim</button>
+        </form>
+      </div>
+      <ul id="wishList" class="wish-list" aria-live="polite" aria-busy="false"></ul>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer__inner">
+      <p>Suatu kebahagiaan &amp; kehormatan bagi kami apabila berkenan hadir dan memberikan do'a restu.</p>
+      <div class="sig">
+        <strong id="sigNames">Nama &amp; Nama</strong>
+        <small id="sigDate">Hari, DD Bulan YYYY</small>
+      </div>
+      <div class="share">
+        <a id="waShare" class="btn btn--small" target="_blank" rel="noopener">Bagikan via WhatsApp</a>
+      </div>
+    </div>
+  </footer>
+
+  <button id="musicToggle" class="music" aria-label="Toggle musik">♪</button>
+
+  <script src="script.js" defer></script>
+  <script src="anim.js" defer></script>
+</body>
+</html>
