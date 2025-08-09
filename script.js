@@ -138,7 +138,7 @@ function fillEvent(idPrefix, info){
   const end   = new Date(info.end);
   q(`#${idPrefix}Day`).textContent = dayName.format(start);
   q(`#${idPrefix}Date`).textContent = dateFull.format(start);
-  q(`#${idPrefix}Time`).textContent = `${hm.format(start)} – ${hm.format(end)} WIB`;
+  q(`#${idPrefix}Time`).textContent = `${hm.format(start)} – Selesai`;
   q(`#${idPrefix}Place`).textContent = info.place;
   q(`#${idPrefix}Addr`).textContent  = info.addr;
   q(`#${idPrefix}Map`).href = info.map;
