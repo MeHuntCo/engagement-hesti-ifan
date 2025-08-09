@@ -43,9 +43,6 @@ const cover = q("#cover");
 const openBtn = q("#openInvitation");
 const audioEl = q("#bgm");
 const musicToggle = q("#musicToggle");
-const consentEl  = document.getElementById("soundConsent"); // modal Allow (opsional)
-const allowBtn   = document.getElementById("soundAllow");
-const laterBtn   = document.getElementById("soundLater");
 const body = document.body;
 
 /* ==== Util: fade volume (GLOBAL) ==== */
@@ -62,17 +59,17 @@ function fadeToVolume(el, target, ms = 350){
 }
 
 /* =======================================================
-   AUDIO: Selalu minta Allow (tanpa localStorage)
-   - Modal Always-On tiap kunjungan (jika elemen modal ada)
-   - Setelah Allow: unmute + play; kalau gagal, gesture berikutnya unlock
+   AUDIO: Mulai HANYA saat klik "Buka Undangan"
+   - Tidak pakai modal "Allow"
+   - Play aman karena dipicu gesture user
 ======================================================= */
-(function initBgmAutoPlay(){
+(function initBgm(){
   if (!audioEl) return;
 
   // State awal
   if (CONFIG.musicUrl) audioEl.src = CONFIG.musicUrl;
   audioEl.loop   = false;   // loop manual agar bisa A→B
-  audioEl.muted  = true;    // start muted -> lolos policy
+  audioEl.muted  = true;    // start muted -> di-unmute saat klik undangan
   audioEl.volume = 0;
 
   const TARGET_VOL = clamp01(
@@ -81,7 +78,7 @@ function fadeToVolume(el, target, ms = 350){
   const START    = Number(CONFIG.musicStart || 0);
   const LOOP_END = CONFIG.musicLoopEnd ?? null;
 
-  // Seek awal (bukan di gesture handler)
+  // Seek awal
   const onMeta = () => {
     if (audioEl.duration && START < audioEl.duration) {
       audioEl.currentTime = Math.max(0, START);
@@ -102,55 +99,19 @@ function fadeToVolume(el, target, ms = 350){
     try { audioEl.play(); } catch {}
   });
 
-  // Sinkronkan ikon musik (butuh CSS .music-playing)
+  // Sinkronkan ikon musik
   audioEl.addEventListener("play",  () => musicToggle?.classList.add("music-playing"));
   audioEl.addEventListener("pause", () => musicToggle?.classList.remove("music-playing"));
 
-  // Coba play muted seawal mungkin (boleh gagal; hanya preload)
-  audioEl.play().catch(()=>{});
-
-  // --- Consent: selalu tampil tiap kunjungan (kalau modal ada) ---
-  let allowed = false; // tidak disimpan; hanya sesi ini
-
-  function tryPlayUnmutedNow(){
+  // Fungsi mulai musik — dipanggil saat klik undangan
+  window.startMusic = () => {
     audioEl.muted = false;
     try { audioEl.play(); } catch {}
     fadeToVolume(audioEl, TARGET_VOL, 250);
-  }
-
-  function enableOneTimeGestureUnlock(){
-    // Setelah user klik Allow, jika play() masih ditolak,
-    // gesture pertama berikutnya memicu tryPlayUnmutedNow (sekali saja).
-    const events = ["pointerdown","pointerup","touchstart","touchend","click","keydown"];
-    const unlock = () => {
-      if (allowed) tryPlayUnmutedNow();
-      events.forEach(ev => document.removeEventListener(ev, unlock, true));
-    };
-    events.forEach(ev => document.addEventListener(ev, unlock, true));
-  }
-
-  // Tampilkan modal setiap kali (jika tersedia), kalau tidak ada modal—biarkan user pakai toggle manual
-  if (consentEl && allowBtn && laterBtn) {
-    consentEl.hidden = false;
-
-    allowBtn.addEventListener("click", () => {
-      allowed = true;
-      consentEl.hidden = true;
-      // panggil play() sinkron di handler gesture
-      tryPlayUnmutedNow();
-      // kalau masih diblokir policy, gesture berikutnya akan unlock
-      enableOneTimeGestureUnlock();
-    }, { once: true });
-
-    laterBtn.addEventListener("click", () => {
-      allowed = false;        // tetap muted
-      consentEl.hidden = true;
-      // tidak memasang unlock—user bisa klik ikon musik jika ingin
-    }, { once: true });
-  }
+  };
 })();
 
-/* ==== Buka undangan (tanpa memutar musik; hanya UX) ==== */
+/* ==== Buka undangan + mulai musik ==== */
 openBtn?.addEventListener("click", () => {
   cover.style.opacity = "0";
   setTimeout(() => cover.remove(), 350);
@@ -158,10 +119,15 @@ openBtn?.addEventListener("click", () => {
   body.classList.add("main-open");
   q("#hero")?.scrollIntoView({ behavior: "smooth" });
 
-  // efek “wow” kecil pada icon (tanpa mengubah audio)
+  // Efek icon musik
   if (musicToggle) {
     musicToggle.classList.add("pulse-music");
     setTimeout(() => musicToggle.classList.remove("pulse-music"), 1200);
+  }
+
+  // Mulai musik di sini (gesture user)
+  if (typeof window.startMusic === "function") {
+    window.startMusic();
   }
 });
 
@@ -233,6 +199,11 @@ q("#groomParents").textContent = CONFIG.groomParents;
   const g = url.searchParams.get(CONFIG.guestParam);
   const name = g ? decodeURIComponent(g).trim() : CONFIG.defaultGuest;
   q("#guestName").textContent = name || CONFIG.defaultGuest;
+
+  const guestNameDate = document.getElementById("guestNameDate");
+  if (guestNameDate) {
+    guestNameDate.textContent = name || CONFIG.defaultGuest;
+  }
 })();
 
 /* ==== Badge tanggal ==== */
@@ -318,7 +289,6 @@ END:VEVENT
 END:VCALENDAR`;
   // (opsional) pakai string ics di tombol "Add to Calendar"
 })();
-
 
 /* ==== Copy helper (data-copy-target) ==== */
 document.querySelectorAll("[data-copy-target]").forEach((btn) => {
