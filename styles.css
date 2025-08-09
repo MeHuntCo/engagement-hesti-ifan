@@ -173,3 +173,20 @@ a{color:inherit;text-decoration:none}
 @media (pointer:coarse){
   .btn{padding:14px 20px}
 }
+
+
+.sound-consent{
+  position: fixed; inset: 0; display: grid; place-items: center;
+  background: rgba(0,0,0,.5); z-index: 9999;
+}
+.sound-consent[hidden]{ display: none; }
+.sound-consent__card{
+  width: min(92vw, 420px); padding: 18px 20px; border-radius: 14px;
+  background: #fff; color: #222; box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  font: 500 14px/1.5 Inter, system-ui, sans-serif;
+}
+.sound-consent__card h3{ margin: 0 0 6px; font: 700 18px/1.2 Playfair Display, serif; }
+.sound-consent__card p{ margin: 0 0 14px; }
+.sound-consent__actions{ display: flex; gap: 10px; justify-content: flex-end; }
+.btn{ appearance: none; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; background:#6b0f1a; color:#fff; font-weight: 600; }
+.btn--outline{ background: transparent; color:#6b0f1a; border:2px solid #6b0f1a; }

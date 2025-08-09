@@ -1,4 +1,6 @@
-/* ======== KONFIGURASI — EDIT BAGIAN INI SAJA ✔️ ======== */
+/* =========================================
+   KONFIGURASI — EDIT YANG DI SINI SAJA ✔️
+========================================= */
 const CONFIG = {
   tz: "Asia/Jakarta",
 
@@ -31,184 +33,166 @@ const CONFIG = {
   guestParam: "to",
   defaultGuest: "Bapak/Ibu/Saudara/i"
 };
-/* ======== /KONFIGURASI ======== */
+/* ========================================= */
 
 const q = (s) => document.querySelector(s);
 
-/* ==== Cover + musik + lock scroll ==== */
+/* ==== Elemen global ==== */
 const cover = q("#cover");
 const openBtn = q("#openInvitation");
 const audioEl = q("#bgm");
 const musicToggle = q("#musicToggle");
 const body = document.body;
 
-/* =========================
-   AUDIO: autoplay aman (tanpa play di tombol)
-   ========================= */
+/* ==== Util ==== */
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
-/* =========================
-/* ============ UNIVERSAL GESTURE UNLOCK (Chrome Android & iOS safe) ============ */
-(function initBgmAutoPlay() {
+/* ==== Consent helpers (HARUS di atas pemakaian) ==== */
+const CONSENT_KEY = "bgm-consent-v1";
+const consentEl  = document.getElementById("soundConsent");
+const allowBtn   = document.getElementById("soundAllow");
+const laterBtn   = document.getElementById("soundLater");
+
+function hasConsent() {
+  try { return localStorage.getItem(CONSENT_KEY) === "yes"; }
+  catch { return false; }
+}
+function setConsent(v) {
+  try { localStorage.setItem(CONSENT_KEY, v ? "yes" : "no"); }
+  catch { /* ignore */ }
+}
+
+/* =======================================================
+   AUDIO: Autoplay + Consent (mobile‑first, Chrome/iOS safe)
+======================================================= */
+(function initBgmAutoPlay(){
   if (!audioEl) return;
 
-  // Start state
+  // State awal
   if (CONFIG.musicUrl) audioEl.src = CONFIG.musicUrl;
-  audioEl.loop = false;        // kita kontrol loop manual (A→B jika diset)
-  audioEl.muted = true;        // mulai muted agar lolos policy
+  audioEl.loop   = false;  // loop manual agar bisa A→B
+  audioEl.muted  = true;   // start muted -> lolos policy
   audioEl.volume = 0;
 
-  // Seek awal (di luar gesture handler)
-  const START = Number(CONFIG.musicStart || 0);
+  const TARGET_VOL = clamp01(
+    typeof CONFIG.musicVolume === "number" ? CONFIG.musicVolume : 0.6
+  );
+  const START    = Number(CONFIG.musicStart || 0);
+  const LOOP_END = CONFIG.musicLoopEnd ?? null;
+
+  // Seek awal (bukan di gesture handler)
   const onMeta = () => {
     if (audioEl.duration && START < audioEl.duration) {
       audioEl.currentTime = Math.max(0, START);
     }
   };
-  if (audioEl.readyState >= 1) onMeta(); else audioEl.addEventListener('loadedmetadata', onMeta, { once:true });
+  if (audioEl.readyState >= 1) onMeta();
+  else audioEl.addEventListener("loadedmetadata", onMeta, { once: true });
 
-  // Loop A→B (opsional)
-  const LOOP_END = CONFIG.musicLoopEnd ?? null;
-  audioEl.addEventListener('timeupdate', () => {
+  // Loop A→B manual (opsional)
+  audioEl.addEventListener("timeupdate", () => {
     if (LOOP_END != null && audioEl.currentTime >= LOOP_END - 0.05) {
       audioEl.currentTime = START;
       if (audioEl.paused) { try { audioEl.play(); } catch {} }
     }
   });
-  audioEl.addEventListener('ended', () => {
+  audioEl.addEventListener("ended", () => {
     audioEl.currentTime = START;
     try { audioEl.play(); } catch {}
   });
 
-  // Coba play muted seawal mungkin (boleh gagal)
-  audioEl.play().catch(()=>{});
-
-  const TARGET_VOL = (typeof CONFIG.musicVolume === 'number')
-    ? Math.min(1, Math.max(0, CONFIG.musicVolume))
-    : 0.6;
-
-  function fadeTo(target = TARGET_VOL, ms = 500) {
-    target = Math.min(1, Math.max(0, target));
-    const start = Math.min(1, Math.max(0, audioEl.volume || 0));
+  // Helper fade volume
+  function fadeTo(target = TARGET_VOL, ms = 500){
+    target = clamp01(target);
+    const start = clamp01(audioEl.volume || 0);
     const t0 = performance.now();
-    function step(t) {
+    (function step(t){
       const k = Math.min(1, (t - t0) / ms);
-      audioEl.volume = Math.min(1, Math.max(0, start + (target - start) * k));
+      audioEl.volume = clamp01(start + (target - start) * k);
       if (k < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
+    })(t0);
   }
 
-  let unlocked = false;
-  const events = ['pointerdown','pointerup','touchstart','touchend','click','keydown'];
+  // Sinkronkan ikon musik (butuh CSS .music-playing)
+  audioEl.addEventListener("play",  () => musicToggle?.classList.add("music-playing"));
+  audioEl.addEventListener("pause", () => musicToggle?.classList.remove("music-playing"));
 
-  // Handler HARUS memanggil play() sinkron dalam gesture yang sama (tanpa await/setTimeout)
-  function unlockAudio(e) {
-    if (unlocked) return;
-    unlocked = true;
+  // Play muted seawal mungkin (boleh gagal)
+  audioEl.play().catch(()=>{});
 
+  function tryPlayUnmutedNow(){
     audioEl.muted = false;
     try { audioEl.play(); } catch {}
     fadeTo(TARGET_VOL, 500);
-
-    // bersihkan semua listener segera
-    detach();
   }
 
-  function onPlay() {
-    // sinkronkan UI toggle agar terlihat "play" (mis. animasi berputar)
-    musicToggle?.classList.add('music-playing');
-  }
-  function onPause() {
-    musicToggle?.classList.remove('music-playing');
-  }
-  audioEl.addEventListener('play', onPlay);
-  audioEl.addEventListener('pause', onPause);
-
-  // Pasang listener di CAPTURE PHASE biar menang lebih dulu
-  function attach() {
-    const optsCapture = { capture: true, passive: true };
-    events.forEach(ev => document.addEventListener(ev, unlockAudio, optsCapture));
-    events.forEach(ev => window.addEventListener(ev, unlockAudio, optsCapture));
-    events.forEach(ev => document.body.addEventListener(ev, unlockAudio, optsCapture));
-
-    // area cover penuh layar: pastikan juga nempel
-    const coverEl = document.getElementById('cover');
-    if (coverEl) events.forEach(ev => coverEl.addEventListener(ev, unlockAudio, optsCapture));
-
-    // tombol Buka Undangan (backup)
-    openBtn?.addEventListener('click', unlockAudio, { capture: true, once: true });
-    // tombol icon musik (kalau user klik ini duluan)
-    musicToggle?.addEventListener('click', unlockAudio, { capture: true, once: true });
+  function enableGestureFallbackUnmute(){
+    // Jika autoplay bersuara masih diblokir, unmute saat gesture pertama TANPA pop-up
+    const unlock = () => {
+      tryPlayUnmutedNow();
+      ["pointerdown","pointerup","touchstart","touchend","click","keydown"].forEach(ev =>
+        document.removeEventListener(ev, unlock, true)
+      );
+    };
+    ["pointerdown","pointerup","touchstart","touchend","click","keydown"].forEach(ev =>
+      document.addEventListener(ev, unlock, true)
+    );
   }
 
-  function detach() {
-    const optsCapture = { capture: true };
-    events.forEach(ev => document.removeEventListener(ev, unlockAudio, optsCapture));
-    events.forEach(ev => window.removeEventListener(ev, unlockAudio, optsCapture));
-    events.forEach(ev => document.body.removeEventListener(ev, unlockAudio, optsCapture));
-    const coverEl = document.getElementById('cover');
-    if (coverEl) events.forEach(ev => coverEl.removeEventListener(ev, unlockAudio, optsCapture));
+  if (hasConsent()) {
+    // User pernah Allow → coba langsung bersuara
+    tryPlayUnmutedNow();
+    enableGestureFallbackUnmute();
+  } else {
+    // Tampilkan modal izin (jika ada di HTML)
+    if (consentEl) consentEl.hidden = false;
+
+    allowBtn?.addEventListener("click", () => {
+      setConsent(true);
+      if (consentEl) consentEl.hidden = true;
+      // panggil play() sinkron di dalam handler gesture
+      tryPlayUnmutedNow();
+    }, { once: true });
+
+    laterBtn?.addEventListener("click", () => {
+      setConsent(false);
+      if (consentEl) consentEl.hidden = true;
+      // tetap muted; user bisa toggle manual dari ikon musik
+    }, { once: true });
   }
 
-  attach();
-
-  // Jika balik ke tab & sudah unmuted, lanjutkan
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !audioEl.muted && audioEl.paused) {
+  // Kembali ke tab → lanjutkan bila sudah consent
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && hasConsent() && audioEl.paused) {
       try { audioEl.play(); } catch {}
     }
   });
 })();
 
-
 /* ==== Buka undangan (tanpa memutar musik) ==== */
-openBtn.addEventListener("click", () => {
-  // Tutup cover
+openBtn?.addEventListener("click", () => {
   cover.style.opacity = "0";
   setTimeout(() => cover.remove(), 350);
   body.classList.remove("no-scroll");
   body.classList.add("main-open");
-  q("#hero").scrollIntoView({ behavior: "smooth" });
+  q("#hero")?.scrollIntoView({ behavior: "smooth" });
 
-  // 🎵 Unmute + play musik kalau belum jalan
-  if (audioEl) {
-    audioEl.muted = false;
-    if (audioEl.paused) {
-      audioEl.play().catch(()=>{});
-    }
-    if (typeof fadeTo === "function") fadeTo((CONFIG.musicVolume ?? 0.6), 500);
-  }
-
-  // ✨ Animasi icon musik
+  // efek “wow” di ikon (tanpa mengubah audio)
   if (musicToggle) {
     musicToggle.classList.add("pulse-music");
     setTimeout(() => musicToggle.classList.remove("pulse-music"), 1200);
   }
 });
 
-
-// Toggle musik manual
-musicToggle.addEventListener("click", () => {
-  if (audioEl.paused) {
-    audioEl.play().catch(() => {});
-  } else {
-    audioEl.pause();
-  }
+/* ==== Toggle musik manual ==== */
+musicToggle?.addEventListener("click", () => {
+  if (audioEl.paused) { audioEl.play().catch(()=>{}); }
+  else { audioEl.pause(); }
 });
 
-audioEl.addEventListener("play", () => {
-  musicToggle.classList.add("music-playing");
-});
-
-audioEl.addEventListener("pause", () => {
-  musicToggle.classList.remove("music-playing");
-});
-
-
-// Kunci scroll ketika cover tampil
-cover.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
-cover.addEventListener("wheel", (e) => e.preventDefault(), { passive: false });
+/* ==== Kunci scroll ketika cover tampil ==== */
+cover?.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+cover?.addEventListener("wheel", (e) => e.preventDefault(),  { passive: false });
 
 /* ==== Nav mobile ==== */
 const toggle = document.querySelector(".nav__toggle");
@@ -292,25 +276,19 @@ function fillEvent(idPrefix, info) {
 fillEvent("akad", CONFIG.akad);
 
 /* ==== Countdown ==== */
-const $dd = q("#dd"),
-  $hh = q("#hh"),
-  $mm = q("#mm"),
-  $ss = q("#ss");
+const $dd = q("#dd"), $hh = q("#hh"), $mm = q("#mm"), $ss = q("#ss");
 const TARGET = new Date(CONFIG.akad.start);
 function tick() {
   const now = new Date();
   const diff = TARGET - now;
   if (diff <= 0) {
-    $dd.textContent = "00";
-    $hh.textContent = "00";
-    $mm.textContent = "00";
-    $ss.textContent = "00";
+    $dd.textContent = "00"; $hh.textContent = "00"; $mm.textContent = "00"; $ss.textContent = "00";
     clearInterval(t);
     return;
   }
-  const sec = Math.floor(diff / 1000);
+  const sec  = Math.floor(diff / 1000);
   const days = Math.floor(sec / 86400);
-  const hrs = Math.floor((sec % 86400) / 3600);
+  const hrs  = Math.floor((sec % 86400) / 3600);
   const mins = Math.floor((sec % 3600) / 60);
   const secs = sec % 60;
   $dd.textContent = String(days).padStart(2, "0");
@@ -318,8 +296,7 @@ function tick() {
   $mm.textContent = String(mins).padStart(2, "0");
   $ss.textContent = String(secs).padStart(2, "0");
 }
-const t = setInterval(tick, 1000);
-tick();
+const t = setInterval(tick, 1000); tick();
 
 /* ==== ICS (Add to Calendar) ==== */
 function toICSDate(d) {
@@ -336,9 +313,9 @@ function toICSDate(d) {
 }
 (function buildICS() {
   const title = `${CONFIG.bride} & ${CONFIG.groom} — Akad`;
-  const loc = `${CONFIG.akad.place}, ${CONFIG.akad.addr}`;
+  const loc   = `${CONFIG.akad.place}, ${CONFIG.akad.addr}`;
   const dtStartUTC = new Date(new Date(CONFIG.akad.start).toISOString());
-  const dtEndUTC = new Date(new Date(CONFIG.akad.end).toISOString());
+  const dtEndUTC   = new Date(new Date(CONFIG.akad.end).toISOString());
   const ics = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Undangan Maroon//ID
@@ -351,7 +328,7 @@ SUMMARY:${title}
 LOCATION:${loc}
 END:VEVENT
 END:VCALENDAR`;
-  // (opsional) pakai string ics di tombol "Add to Calendar"
+  // gunakan string ics di tombol "Add to Calendar" kalau diperlukan
 })();
 
 /* ==== Copy helper (data-copy-target) ==== */
@@ -391,19 +368,15 @@ function loadWishes() {
   list.innerHTML = "";
 
   const escapeHTML = (v) =>
-    String(v ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    String(v ?? "").replace(/[&<>"']/g, (m) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
 
-  data
-    .slice(-50)
-    .reverse()
-    .forEach((item) => {
-      const name = escapeHTML(item?.name);
-      const attend = escapeHTML(item?.attend);
-      const message = escapeHTML(item?.message);
-      const li = document.createElement("li");
-      li.innerHTML = `<strong>${name || "-"}</strong> • <em>${attend || "-"}</em><br>${message || ""}`;
-      list.appendChild(li);
-    });
+  data.slice(-50).reverse().forEach((item) => {
+    const name = escapeHTML(item?.name);
+    const message = escapeHTML(item?.message);
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${name || "-"}</strong><br>${message || ""}`;
+    list.appendChild(li);
+  });
 }
 
 function saveWish(w) {
@@ -411,13 +384,10 @@ function saveWish(w) {
   try {
     arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     if (!Array.isArray(arr)) arr = [];
-  } catch {
-    arr = [];
-  }
+  } catch { arr = []; }
   arr.push({
     name: String(w.name ?? ""),
-    message: String(w.message ?? ""),
-    attend: String(w.attend ?? "")
+    message: String(w.message ?? "")
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
 }
@@ -434,15 +404,12 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  saveWish({ name, message, attend: "", at: Date.now() });
+  saveWish({ name, message, at: Date.now() });
   loadWishes();
 
   const lines = [`From: ${name}`, `Wish:`, message, ""];
-  const text = encodeURIComponent(lines.join("\n"));
-
-  const phone =
-    CONFIG.waNumber && /^\d{8,15}$/.test(CONFIG.waNumber) ? CONFIG.waNumber : null;
-
+  const text  = encodeURIComponent(lines.join("\n"));
+  const phone = CONFIG.waNumber && /^\d{8,15}$/.test(CONFIG.waNumber) ? CONFIG.waNumber : null;
   const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
   const waUrl = isMobile
@@ -515,9 +482,7 @@ window.addEventListener("DOMContentLoaded", loadWishes);
     `;
 
     wrap.appendChild(p);
-    setTimeout(() => {
-      p.remove();
-    }, tFall * 1000);
+    setTimeout(() => { p.remove(); }, tFall * 1000);
   }
 
   setInterval(createPetal, INTERVAL);

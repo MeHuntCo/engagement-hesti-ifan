@@ -151,6 +151,17 @@
   </footer>
 
   <button id="musicToggle" class="music" aria-label="Toggle musik">♪</button>
+  <!-- Consent modal -->
+<div id="soundConsent" class="sound-consent" hidden>
+  <div class="sound-consent__card" role="dialog" aria-modal="true" aria-labelledby="soundTitle">
+    <h3 id="soundTitle">Nyalakan musik?</h3>
+    <p>Untuk pengalaman terbaik, izinkan musik diputar saat undangan dibuka.</p>
+    <div class="sound-consent__actions">
+      <button id="soundAllow" class="btn">Allow</button>
+      <button id="soundLater" class="btn btn--outline">Nanti saja</button>
+    </div>
+  </div>
+</div>
 
   <script src="script.js" defer></script>
   <script src="anim.js" defer></script>
