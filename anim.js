@@ -80,15 +80,35 @@
 
 
 // Curtain open on scroll into view
+// (() => {
+//   const el = document.getElementById("curtainCouple");
+//   if (!el || !('IntersectionObserver' in window)) return;
+//   const io = new IntersectionObserver(([ent]) => {
+//     if (ent.isIntersecting) {
+//       el.classList.add("curtain-open");
+//       io.disconnect();
+//     }
+//   }, { threshold: 0.35, rootMargin: "0px 0px -15% 0px" });
+//   io.observe(el);
+// })();
+
+// Trigger curtainFX saat sceneCouple terlihat
 (() => {
-  const el = document.getElementById("curtainCouple");
-  if (!el || !('IntersectionObserver' in window)) return;
-  const io = new IntersectionObserver(([ent]) => {
-    if (ent.isIntersecting) {
-      el.classList.add("curtain-open");
+  const scene = document.getElementById('sceneCouple');
+  const curtain = document.getElementById('curtainCouple');
+  if (!scene || !curtain) return;
+
+  if (!('IntersectionObserver' in window)) {
+    scene.classList.add('expand');
+    curtain.classList.add('open');
+    return;
+  }
+  const io = new IntersectionObserver(([e])=>{
+    if (e.isIntersecting) {
+      scene.classList.add('expand');
+      curtain.classList.add('open');
       io.disconnect();
     }
   }, { threshold: 0.35, rootMargin: "0px 0px -15% 0px" });
-  io.observe(el);
+  io.observe(scene);
 })();
-

@@ -43,9 +43,40 @@ const body = document.body;
 function safePlay() {
   if (!audio) return;
   audio.volume = CONFIG.musicVolume;
-  audio.currentTime = CONFIG.musicStart || 0;
-  audio.play().catch(()=>{ /* autoplay butuh gesture */ });
+  audio.loop = false; // kita yang kontrol loop-nya
+  const START = Number(CONFIG.musicStart || 0);
+  const LOOP_END = (CONFIG.musicLoopEnd ?? null);
+
+  // Pastikan seek setelah metadata siap (supaya tidak diabaikan Safari/Chrome)
+  const seekToStart = () => {
+    if (audio.duration && START < audio.duration) {
+      audio.currentTime = Math.max(0, START);
+    }
+  };
+  if (audio.readyState >= 1) seekToStart();
+  else audio.addEventListener('loadedmetadata', seekToStart, { once:true });
+
+  // Mulai
+  audio.play().catch(()=>{ /* butuh gesture */ });
+
+  // 1) Loop ke START saat lagu berakhir
+  audio.addEventListener('ended', () => {
+    seekToStart();
+    audio.play().catch(()=>{});
+  });
+
+  // 2) (Opsional) Loop segmen START..LOOP_END
+  if (LOOP_END != null) {
+    audio.addEventListener('timeupdate', () => {
+      if (audio.currentTime >= LOOP_END - 0.05) { // -0.05 untuk menghindari gap
+        seekToStart();
+        // keep playing tanpa jeda
+        if (audio.paused) audio.play().catch(()=>{});
+      }
+    });
+  }
 }
+
 
 // Pop-in sudah di CSS (class .pop-in di .cover__card)
 // Body sudah class .no-scroll dari HTML; hapus saat undangan dibuka
