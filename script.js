@@ -7,6 +7,7 @@ const CONFIG = {
   brideParents: "Putri dari Bapak Purhadi & Ibu Endang",
   groomParents: "Putra dari Bapak Hartono & Alm Ibu Kartini",
   musicStart: 144.7, // detik mulai
+  musicUrl: "assets/music.mp3",
 
   waNumber: "6282324858528", // ganti ke nomor tujuan (format internasional tanpa +)
   // Tanggal (ISO, +07:00 untuk WIB)
@@ -76,6 +77,109 @@ function safePlay() {
     });
   }
 }
+
+// ====== Web Audio: prefetch & seamless loop A→B ======
+let audioCtx, gainNode, sourceNode, audioBuffer, prefetchPromise;
+let usingWebAudio = false;
+
+function prefetchAudio() {
+  if (prefetchPromise) return prefetchPromise;
+  prefetchPromise = fetch(CONFIG.musicUrl, { mode: "cors", cache: "force-cache" })
+    .then(r => r.arrayBuffer())
+    .then(buf => {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx.decodeAudioData(buf);
+    })
+    .then(decoded => { audioBuffer = decoded; })
+    .catch(() => { /* biar fallback ke <audio> */ });
+  return prefetchPromise;
+}
+
+// Mulai play (dipanggil saat klik "Buka Undangan")
+async function safePlay() {
+  // 1) Prefetch dulu biar instant
+  await prefetchAudio().catch(()=>{});
+
+  // 2) Coba Web Audio kalau buffer tersedia
+  if (audioBuffer && (window.AudioContext || window.webkitAudioContext)) {
+    usingWebAudio = true;
+
+    // (Re)init context setelah gesture (iOS butuh resume)
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") await audioCtx.resume().catch(()=>{});
+
+    // Build graph: Source -> Gain -> Destination
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0; // fade-in
+    gainNode.connect(audioCtx.destination);
+
+    sourceNode = audioCtx.createBufferSource();
+    sourceNode.buffer = audioBuffer;
+    sourceNode.loop = true;
+
+    const START = Math.max(0, Number(CONFIG.musicStart || 0));
+    const END   = CONFIG.musicLoopEnd != null ? Math.max(START + 0.01, Number(CONFIG.musicLoopEnd)) : audioBuffer.duration;
+
+    // Loop segmen A→B tanpa gap
+    sourceNode.loopStart = START;
+    sourceNode.loopEnd   = END;
+
+    // Start dari offset START
+    sourceNode.connect(gainNode);
+    sourceNode.start(0, START);
+
+    // Fade-in halus
+    const target = Math.max(0, Math.min(1, CONFIG.musicVolume ?? 0.6));
+    const now = audioCtx.currentTime;
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(target, now + 0.6);
+
+    // Visibility fix: kalau tab di-re-activate, resume context
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && audioCtx?.state === "suspended") {
+        audioCtx.resume().catch(()=>{});
+      }
+    });
+
+    return;
+  }
+
+  // 3) Fallback ke <audio> element (pastikan tidak pakai loop)
+  const el = document.getElementById("bgm");
+  if (el) {
+    el.removeAttribute("loop");
+    el.volume = CONFIG.musicVolume ?? 0.6;
+
+    const seekStart = () => {
+      if (el.duration && (CONFIG.musicStart || 0) < el.duration) {
+        el.currentTime = Number(CONFIG.musicStart || 0);
+      }
+    };
+    if (el.readyState >= 1) seekStart(); else el.addEventListener("loadedmetadata", seekStart, { once:true });
+
+    // Loop A→B manual (atau ke start saat ended)
+    const END = CONFIG.musicLoopEnd ?? null;
+    el.addEventListener("timeupdate", () => {
+      if (END != null && el.currentTime >= END - 0.05) {
+        el.currentTime = Number(CONFIG.musicStart || 0);
+      }
+    });
+    el.addEventListener("ended", () => {
+      el.currentTime = Number(CONFIG.musicStart || 0);
+      el.play().catch(()=>{});
+    });
+
+    el.play().catch(()=>{});
+  }
+}
+
+// (Opsional) Mulai prefetch begitu halaman siap (biar cepat saat klik)
+window.addEventListener("DOMContentLoaded", () => {
+  prefetchAudio().catch(()=>{});
+});
+
+
 
 
 // Pop-in sudah di CSS (class .pop-in di .cover__card)
