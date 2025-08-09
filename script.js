@@ -48,47 +48,46 @@ const body = document.body;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 /* =========================
-   AUDIO: Mobile‑first unlock (GitHub Pages / iOS safe)
-   ========================= */
+/* ============ UNIVERSAL GESTURE UNLOCK (Chrome Android & iOS safe) ============ */
 (function initBgmAutoPlay() {
   if (!audioEl) return;
 
-  // Pastikan source & state awal
+  // Start state
   if (CONFIG.musicUrl) audioEl.src = CONFIG.musicUrl;
-  audioEl.loop = false;          // kita kontrol manual kalau pakai A→B
-  audioEl.volume = 0;            // start silent
-  audioEl.muted  = true;         // start muted → lolos autoplay policy
+  audioEl.loop = false;        // kita kontrol loop manual (A→B jika diset)
+  audioEl.muted = true;        // mulai muted agar lolos policy
+  audioEl.volume = 0;
 
-  // Siapkan seek awal (bukan di gesture handler, biar iOS tidak nge-drop pemutaran)
+  // Seek awal (di luar gesture handler)
   const START = Number(CONFIG.musicStart || 0);
   const onMeta = () => {
     if (audioEl.duration && START < audioEl.duration) {
       audioEl.currentTime = Math.max(0, START);
     }
   };
-  if (audioEl.readyState >= 1) onMeta(); else audioEl.addEventListener("loadedmetadata", onMeta, { once:true });
+  if (audioEl.readyState >= 1) onMeta(); else audioEl.addEventListener('loadedmetadata', onMeta, { once:true });
 
-  // Loop A→B manual bila diset
+  // Loop A→B (opsional)
   const LOOP_END = CONFIG.musicLoopEnd ?? null;
-  audioEl.addEventListener("timeupdate", () => {
+  audioEl.addEventListener('timeupdate', () => {
     if (LOOP_END != null && audioEl.currentTime >= LOOP_END - 0.05) {
       audioEl.currentTime = START;
-      if (audioEl.paused) audioEl.play().catch(()=>{});
+      if (audioEl.paused) { try { audioEl.play(); } catch {} }
     }
   });
-  audioEl.addEventListener("ended", () => {
+  audioEl.addEventListener('ended', () => {
     audioEl.currentTime = START;
-    audioEl.play().catch(()=>{});
+    try { audioEl.play(); } catch {}
   });
 
-  // Coba play muted seawal mungkin (bisa gagal di iOS, nggak apa)
+  // Coba play muted seawal mungkin (boleh gagal)
   audioEl.play().catch(()=>{});
 
-  // ========== HARDENED GESTURE UNLOCK ==========
-  const TARGET_VOL = typeof CONFIG?.musicVolume === "number" ? Math.min(1, Math.max(0, CONFIG.musicVolume)) : 0.6;
-  let unlocked = false;
+  const TARGET_VOL = (typeof CONFIG.musicVolume === 'number')
+    ? Math.min(1, Math.max(0, CONFIG.musicVolume))
+    : 0.6;
 
-  function fadeTo(target = TARGET_VOL, ms = 600) {
+  function fadeTo(target = TARGET_VOL, ms = 500) {
     target = Math.min(1, Math.max(0, target));
     const start = Math.min(1, Math.max(0, audioEl.volume || 0));
     const t0 = performance.now();
@@ -100,46 +99,68 @@ const clamp01 = (v) => Math.min(1, Math.max(0, v));
     requestAnimationFrame(step);
   }
 
-  // Penting: panggil play() langsung di handler gesture yang sama—tanpa async/await
-  function unlockAudio() {
+  let unlocked = false;
+  const events = ['pointerdown','pointerup','touchstart','touchend','click','keydown'];
+
+  // Handler HARUS memanggil play() sinkron dalam gesture yang sama (tanpa await/setTimeout)
+  function unlockAudio(e) {
     if (unlocked) return;
     unlocked = true;
 
-    // Unmute + play sinkron dalam handler
     audioEl.muted = false;
-    try { audioEl.play(); } catch (_) {}
-
-    // Fade setelah call play (tanpa menunggu promise)
+    try { audioEl.play(); } catch {}
     fadeTo(TARGET_VOL, 500);
 
-    detach(); // lepas semua listener setelah sukses dipanggil
+    // bersihkan semua listener segera
+    detach();
+  }
+
+  function onPlay() {
+    // sinkronkan UI toggle agar terlihat "play" (mis. animasi berputar)
+    musicToggle?.classList.add('music-playing');
+  }
+  function onPause() {
+    musicToggle?.classList.remove('music-playing');
+  }
+  audioEl.addEventListener('play', onPlay);
+  audioEl.addEventListener('pause', onPause);
+
+  // Pasang listener di CAPTURE PHASE biar menang lebih dulu
+  function attach() {
+    const optsCapture = { capture: true, passive: true };
+    events.forEach(ev => document.addEventListener(ev, unlockAudio, optsCapture));
+    events.forEach(ev => window.addEventListener(ev, unlockAudio, optsCapture));
+    events.forEach(ev => document.body.addEventListener(ev, unlockAudio, optsCapture));
+
+    // area cover penuh layar: pastikan juga nempel
+    const coverEl = document.getElementById('cover');
+    if (coverEl) events.forEach(ev => coverEl.addEventListener(ev, unlockAudio, optsCapture));
+
+    // tombol Buka Undangan (backup)
+    openBtn?.addEventListener('click', unlockAudio, { capture: true, once: true });
+    // tombol icon musik (kalau user klik ini duluan)
+    musicToggle?.addEventListener('click', unlockAudio, { capture: true, once: true });
   }
 
   function detach() {
-    ["pointerdown","pointerup","touchend","click","keydown"].forEach(ev => {
-      document.removeEventListener(ev, unlockAudio, passiveOpt);
-    });
-    openBtn?.removeEventListener("click", unlockAudio, { once:true });
+    const optsCapture = { capture: true };
+    events.forEach(ev => document.removeEventListener(ev, unlockAudio, optsCapture));
+    events.forEach(ev => window.removeEventListener(ev, unlockAudio, optsCapture));
+    events.forEach(ev => document.body.removeEventListener(ev, unlockAudio, optsCapture));
+    const coverEl = document.getElementById('cover');
+    if (coverEl) events.forEach(ev => coverEl.removeEventListener(ev, unlockAudio, optsCapture));
   }
 
-  const passiveOpt = { passive:true };
+  attach();
 
-  // Daftarkan ke beberapa event supaya peluang sukses maksimum di iOS
-  ["pointerdown","pointerup","touchend","click","keydown"].forEach(ev => {
-    document.addEventListener(ev, unlockAudio, passiveOpt);
-  });
-
-  // Tambahkan juga langsung ke tombol "Buka Undangan"
-  // (klik tombol = gesture paling natural bagi tamu)
-  openBtn?.addEventListener("click", unlockAudio, { once:true });
-
-  // Jika user kembali ke tab & sudah di‑unmute, coba lanjut
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && !audioEl.muted && audioEl.paused) {
-      audioEl.play().catch(()=>{});
+  // Jika balik ke tab & sudah unmuted, lanjutkan
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !audioEl.muted && audioEl.paused) {
+      try { audioEl.play(); } catch {}
     }
   });
 })();
+
 
 /* ==== Buka undangan (tanpa memutar musik) ==== */
 openBtn.addEventListener("click", () => {
