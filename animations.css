@@ -264,3 +264,14 @@
 @media (prefers-reduced-motion: reduce){
     .curtainFX{ display:none }
 }
+
+
+
+@keyframes spin-music {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.music-playing {
+  animation: spin-music 3s linear infinite;
+}
