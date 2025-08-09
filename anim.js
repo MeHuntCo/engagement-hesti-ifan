@@ -96,19 +96,34 @@
 (() => {
   const scene = document.getElementById('sceneCouple');
   const curtain = document.getElementById('curtainCouple');
+  const couplesContainer = document.querySelector('.couples');
   if (!scene || !curtain) return;
 
-  if (!('IntersectionObserver' in window)) {
+  // Fungsi buat buka curtain + munculin couples
+  const openCurtain = () => {
     scene.classList.add('expand');
     curtain.classList.add('open');
+
+    // Tambahkan delay sedikit supaya couples muncul setelah curtain terbuka
+    if (couplesContainer) {
+      setTimeout(() => {
+        couplesContainer.classList.add('show');
+      }, 1600); // delay disesuaikan dengan durasi animasi curtain
+    }
+  };
+
+  if (!('IntersectionObserver' in window)) {
+    openCurtain();
     return;
   }
-  const io = new IntersectionObserver(([e])=>{
+
+  const io = new IntersectionObserver(([e]) => {
     if (e.isIntersecting) {
-      scene.classList.add('expand');
-      curtain.classList.add('open');
+      openCurtain();
       io.disconnect();
     }
-  }, { threshold: 0.35, rootMargin: "0px 0px -15% 0px" });
+  }, { threshold: 0.35, rootMargin: '0px 0px -15% 0px' });
+
   io.observe(scene);
 })();
+

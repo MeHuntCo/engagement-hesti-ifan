@@ -190,3 +190,57 @@ a{color:inherit;text-decoration:none}
 .sound-consent__actions{ display: flex; gap: 10px; justify-content: flex-end; }
 .btn{ appearance: none; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; background:#6b0f1a; color:#fff; font-weight: 600; }
 .btn--outline{ background: transparent; color:#6b0f1a; border:2px solid #6b0f1a; }
+
+
+.gold {
+  background: linear-gradient(135deg, #f6e7b9 0%, #e6c874 30%, #b78b2a 60%, #f2e4b3 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 0 0 rgba(0,0,0,0);
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.15));
+}
+/* shimmer halus on hover */
+.gold:hover{ background-position: 120% 0; transition: background-position 1.2s ease; }
+
+
+.hero__monogram {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Batik + bunga dalam satu SVG */
+/* Ornamen batik + bunga (versi lebih jelas & aman radius) */
+/* Skala tile bisa kamu atur lewat var agar responsif */
+.hero__monogram{
+  --tile: 44px;          /* ukuran kawung (semakin besar = motif lebih jarang) */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero__monogram::after{
+  content:"";
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  /* Layer 1 (atas): corners.svg, no-repeat; Layer 2 (bawah): kawung tile, repeat */
+  background-image:
+    url("assets/bunga.svg"),
+    url("assets/batik.svg");
+  background-repeat: no-repeat, repeat;
+  background-position: center, center;
+  background-size: 96% 96%, var(--tile) var(--tile);
+  opacity: .26;
+  /* agar pattern ikut rounded */
+  border-radius: inherit;
+}
+
+@media (max-width: 768px){
+  .hero__monogram{ --tile: 36px; }
+}
+@media (max-width: 480px){
+  .hero__monogram{ --tile: 32px; }
+  .hero__monogram::after{ background-size: 92% 92%, var(--tile) var(--tile); }
+}
+
+
+
+

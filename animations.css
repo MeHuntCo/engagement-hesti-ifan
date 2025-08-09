@@ -224,7 +224,7 @@
 }
 .curtainFX__left,
 .curtainFX__right{
-    position:absolute; top:0; width:100%; height:100%;
+    position:absolute; top:0; width:100%; height:150%;
     background-image: url("assets/curtain.svg"); /* ganti ke path file SVG maroon */
     background-size: cover;
     background-repeat: no-repeat;
@@ -257,8 +257,8 @@
 }
 
 @keyframes curtain-opening { from{filter:brightness(180%)} to{filter:brightness(100%)} }
-@keyframes left-curtain-opening  { from{ transform:translate(0) rotate(0) scale(1,1) } to{ transform:translate(-100%) rotate(20deg)  scale(0,2) } }
-@keyframes right-curtain-opening { from{ transform:translate(0) rotate(0) scale(1,1) } to{ transform:translate(100%)  rotate(-20deg) scale(0,2) } }
+@keyframes left-curtain-opening  { from{ transform:translate(0) rotate(0) scale(1,1) } to{ transform:translate(-100%) rotate(10deg)  scale(0,10) } }
+@keyframes right-curtain-opening { from{ transform:translate(0) rotate(0) scale(1,1) } to{ transform:translate(100%)  rotate(-10deg) scale(0,10) } }
 @keyframes ground-rise { from{ top:133%; opacity:0 } to{ top:105%; opacity:1 } }
 
 @media (prefers-reduced-motion: reduce){
@@ -274,4 +274,17 @@
 
 .music-playing {
   animation: spin-music 3s linear infinite;
+}
+
+
+/* Efek muncul couples */
+.couples {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 2s ease, transform 2s ease;
+}
+
+.couples.show {
+  opacity: 1;
+  transform: translateY(0);
 }

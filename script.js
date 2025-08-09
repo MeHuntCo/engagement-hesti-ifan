@@ -26,7 +26,7 @@ const CONFIG = {
     end:   "2025-08-23T18:00:00+07:00",
     place: "Kediaman Mempelai Wanita",
     addr:  "Dk. Kaligawe DS. Sidoarum RT. 02 RW 05 Kec. Jakenan Kab. Pati",
-    map:   "https://maps.app.goo.gl/TXvQbkwDXwtKhZ5F7?g_st=ac"
+    map:   "https://maps.app.goo.gl/rifpXn2tAoSeBFUx6"
   },
 
   // Parameter nama tamu di URL: ?to=Nama%20Tamu
@@ -185,25 +185,32 @@ q("#groomParents").textContent = CONFIG.groomParents;
 
 /* ==== Param nama tamu ==== */
 (function setGuest() {
-  // Prefill nama form dari ?to=
-  (function () {
+  function getGuestFromURL() {
     const url = new URL(location.href);
-    const g = url.searchParams.get(CONFIG.guestParam);
-    if (g) {
-      const nm = document.getElementById("name");
-      if (nm && !nm.value) nm.value = decodeURIComponent(g).trim();
-    }
-  })();
+    const raw = url.searchParams.get(CONFIG.guestParam);
+    if (!raw) return CONFIG.defaultGuest;
 
-  const url = new URL(location.href);
-  const g = url.searchParams.get(CONFIG.guestParam);
-  const name = g ? decodeURIComponent(g).trim() : CONFIG.defaultGuest;
-  q("#guestName").textContent = name || CONFIG.defaultGuest;
+    // 1) Ubah + => spasi, 2) decode %xx, 3) rapikan spasi
+    const name = decodeURIComponent(raw.replace(/\+/g, " "))
+      .replace(/\s+/g, " ")
+      .trim();
 
-  const guestNameDate = document.getElementById("guestNameDate");
-  if (guestNameDate) {
-    guestNameDate.textContent = name || CONFIG.defaultGuest;
+    return name || CONFIG.defaultGuest;
   }
+
+  const name = getGuestFromURL();
+
+  // Prefill form kalau kosong
+  const nm = document.getElementById("name");
+  if (nm && !nm.value) nm.value = name;
+
+  // Cover
+  const guestNameCover = document.getElementById("guestName");
+  if (guestNameCover) guestNameCover.textContent = name;
+
+  // Section Date (inv-text)
+  const guestNameDate = document.getElementById("guestNameDate");
+  if (guestNameDate) guestNameDate.textContent = name;
 })();
 
 /* ==== Badge tanggal ==== */
