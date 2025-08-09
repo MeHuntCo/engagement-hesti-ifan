@@ -6,6 +6,7 @@ const CONFIG = {
   groom: "Ifan",
   brideParents: "Putri dari Bapak Purhadi & Ibu Endang",
   groomParents: "Putra dari Bapak Hartono & Alm Ibu Kartini",
+  musicStart: 144.7, // detik mulai
 
   waNumber: "6282324858528", // ganti ke nomor tujuan (format internasional tanpa +)
   // Tanggal (ISO, +07:00 untuk WIB)
@@ -42,6 +43,7 @@ const body = document.body;
 function safePlay() {
   if (!audio) return;
   audio.volume = CONFIG.musicVolume;
+  audio.currentTime = CONFIG.musicStart || 0;
   audio.play().catch(()=>{ /* autoplay butuh gesture */ });
 }
 
