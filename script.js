@@ -35,6 +35,7 @@ const CONFIG = {
 /* ========================================= */
 
 const q = (s) => document.querySelector(s);
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 /* ==== Elemen global ==== */
 const cover = q("#cover");
@@ -43,10 +44,7 @@ const audioEl = q("#bgm");
 const musicToggle = q("#musicToggle");
 const body = document.body;
 
-/* ==== Util ==== */
-const clamp01 = (v) => Math.min(1, Math.max(0, v));
-
-/* ==== Consent helpers (HOISTED; WAJIB di atas pemakaian) ==== */
+/* ==== Consent helpers (HOISTED) ==== */
 const CONSENT_KEY = "bgm-consent-v1";
 const consentEl  = document.getElementById("soundConsent");
 const allowBtn   = document.getElementById("soundAllow");
@@ -59,6 +57,19 @@ function hasConsent() {
 function setConsent(v) {
   try { localStorage.setItem(CONSENT_KEY, v ? "yes" : "no"); }
   catch { /* ignore */ }
+}
+
+/* ==== Util: fade volume (GLOBAL, bisa dipakai di mana saja) ==== */
+function fadeToVolume(el, target, ms = 400){
+  if (!el) return;
+  target = clamp01(target);
+  const start = clamp01(el.volume || 0);
+  const t0 = performance.now();
+  (function step(t){
+    const k = Math.min(1, (t - t0) / ms);
+    el.volume = clamp01(start + (target - start) * k);
+    if (k < 1) requestAnimationFrame(step);
+  })(t0);
 }
 
 /* =======================================================
@@ -100,18 +111,6 @@ function setConsent(v) {
     try { audioEl.play(); } catch {}
   });
 
-  // Fade util (scoped)
-  function fadeTo(target = TARGET_VOL, ms = 400){
-    target = clamp01(target);
-    const start = clamp01(audioEl.volume || 0);
-    const t0 = performance.now();
-    (function step(t){
-      const k = Math.min(1, (t - t0) / ms);
-      audioEl.volume = clamp01(start + (target - start) * k);
-      if (k < 1) requestAnimationFrame(step);
-    })(t0);
-  }
-
   // Sinkronkan ikon musik (butuh CSS .music-playing)
   audioEl.addEventListener("play",  () => musicToggle?.classList.add("music-playing"));
   audioEl.addEventListener("pause", () => musicToggle?.classList.remove("music-playing"));
@@ -119,25 +118,24 @@ function setConsent(v) {
   // Coba play muted seawal mungkin (boleh gagal)
   audioEl.play().catch(()=>{});
 
-  const gestureEvents = ["pointerdown","pointerup","touchstart","touchend","click","keydown"];
-
   function tryPlayUnmutedNow(){
     audioEl.muted = false;
     try { audioEl.play(); } catch {}
-    fadeTo(TARGET_VOL, 300);
+    fadeToVolume(audioEl, TARGET_VOL, 280);
   }
 
   // Fallback universal: kalau masih diblokir, unmute saat gesture pertama
   function enableGestureFallbackUnmute(){
+    const events = ["pointerdown","pointerup","touchstart","touchend","click","keydown"];
     const unlock = () => {
       tryPlayUnmutedNow();
-      gestureEvents.forEach(ev => document.removeEventListener(ev, unlock, true));
+      events.forEach(ev => document.removeEventListener(ev, unlock, true));
     };
-    gestureEvents.forEach(ev => document.addEventListener(ev, unlock, true));
+    events.forEach(ev => document.addEventListener(ev, unlock, true));
   }
 
   if (hasConsent()) {
-    // User pernah Allow → coba langsung bersuara
+    // User pernah Allow → coba langsung bersuara, dan jaga dengan fallback gesture
     tryPlayUnmutedNow();
     enableGestureFallbackUnmute();
   } else {
@@ -177,7 +175,7 @@ openBtn?.addEventListener("click", () => {
   body.classList.add("main-open");
   q("#hero")?.scrollIntoView({ behavior: "smooth" });
 
-  // efek “wow” di ikon (tanpa mengubah audio)
+  // efek “wow” kecil pada icon (tanpa mengubah audio)
   if (musicToggle) {
     musicToggle.classList.add("pulse-music");
     setTimeout(() => musicToggle.classList.remove("pulse-music"), 1200);
@@ -276,13 +274,19 @@ function fillEvent(idPrefix, info) {
 fillEvent("akad", CONFIG.akad);
 
 /* ==== Countdown ==== */
-const $dd = q("#dd"), $hh = q("#hh"), $mm = q("#mm"), $ss = q("#ss");
+const $dd = q("#dd"),
+      $hh = q("#hh"),
+      $mm = q("#mm"),
+      $ss = q("#ss");
 const TARGET = new Date(CONFIG.akad.start);
 function tick() {
   const now = new Date();
   const diff = TARGET - now;
   if (diff <= 0) {
-    $dd.textContent = "00"; $hh.textContent = "00"; $mm.textContent = "00"; $ss.textContent = "00";
+    $dd.textContent = "00";
+    $hh.textContent = "00";
+    $mm.textContent = "00";
+    $ss.textContent = "00";
     clearInterval(t);
     return;
   }
