@@ -356,7 +356,7 @@ form.addEventListener("submit", (e) => {
     const p = document.createElement('span');
     p.className = 'petal';
 
-    const w = 28 + Math.random()*18;
+    const w = 42 + Math.random()*27;
     const h = w * (1.45 + Math.random()*0.35);
     p.style.left = `${Math.random()*100}%`;
     p.style.setProperty('--size',  `${w}px`);

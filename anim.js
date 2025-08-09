@@ -77,3 +77,18 @@
     dynObs.observe(wishList, {childList:true});
   }
 })();
+
+
+// Curtain open on scroll into view
+(() => {
+  const el = document.getElementById("curtainCouple");
+  if (!el || !('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(([ent]) => {
+    if (ent.isIntersecting) {
+      el.classList.add("curtain-open");
+      io.disconnect();
+    }
+  }, { threshold: 0.35, rootMargin: "0px 0px -15% 0px" });
+  io.observe(el);
+})();
+
