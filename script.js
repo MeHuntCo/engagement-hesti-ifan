@@ -29,6 +29,7 @@ const CONFIG = {
     map:   "https://maps.app.goo.gl/TXvQbkwDXwtKhZ5F7?g_st=ac"
   },
 
+  // Parameter nama tamu di URL: ?to=Nama%20Tamu
   guestParam: "to",
   defaultGuest: "Bapak/Ibu/Saudara/i"
 };
@@ -42,25 +43,13 @@ const cover = q("#cover");
 const openBtn = q("#openInvitation");
 const audioEl = q("#bgm");
 const musicToggle = q("#musicToggle");
-const body = document.body;
-
-/* ==== Consent helpers (HOISTED) ==== */
-const CONSENT_KEY = "bgm-consent-v1";
-const consentEl  = document.getElementById("soundConsent");
+const consentEl  = document.getElementById("soundConsent"); // modal Allow (opsional)
 const allowBtn   = document.getElementById("soundAllow");
 const laterBtn   = document.getElementById("soundLater");
+const body = document.body;
 
-function hasConsent() {
-  try { return localStorage.getItem(CONSENT_KEY) === "yes"; }
-  catch { return false; }
-}
-function setConsent(v) {
-  try { localStorage.setItem(CONSENT_KEY, v ? "yes" : "no"); }
-  catch { /* ignore */ }
-}
-
-/* ==== Util: fade volume (GLOBAL, bisa dipakai di mana saja) ==== */
-function fadeToVolume(el, target, ms = 400){
+/* ==== Util: fade volume (GLOBAL) ==== */
+function fadeToVolume(el, target, ms = 350){
   if (!el) return;
   target = clamp01(target);
   const start = clamp01(el.volume || 0);
@@ -73,15 +62,17 @@ function fadeToVolume(el, target, ms = 400){
 }
 
 /* =======================================================
-   AUDIO: Autoplay + Consent (mobile‑first, Chrome/iOS safe)
+   AUDIO: Selalu minta Allow (tanpa localStorage)
+   - Modal Always-On tiap kunjungan (jika elemen modal ada)
+   - Setelah Allow: unmute + play; kalau gagal, gesture berikutnya unlock
 ======================================================= */
 (function initBgmAutoPlay(){
   if (!audioEl) return;
 
   // State awal
   if (CONFIG.musicUrl) audioEl.src = CONFIG.musicUrl;
-  audioEl.loop   = false;  // loop manual agar bisa A→B
-  audioEl.muted  = true;   // start muted -> lolos policy
+  audioEl.loop   = false;   // loop manual agar bisa A→B
+  audioEl.muted  = true;    // start muted -> lolos policy
   audioEl.volume = 0;
 
   const TARGET_VOL = clamp01(
@@ -115,56 +106,48 @@ function fadeToVolume(el, target, ms = 400){
   audioEl.addEventListener("play",  () => musicToggle?.classList.add("music-playing"));
   audioEl.addEventListener("pause", () => musicToggle?.classList.remove("music-playing"));
 
-  // Coba play muted seawal mungkin (boleh gagal)
+  // Coba play muted seawal mungkin (boleh gagal; hanya preload)
   audioEl.play().catch(()=>{});
+
+  // --- Consent: selalu tampil tiap kunjungan (kalau modal ada) ---
+  let allowed = false; // tidak disimpan; hanya sesi ini
 
   function tryPlayUnmutedNow(){
     audioEl.muted = false;
     try { audioEl.play(); } catch {}
-    fadeToVolume(audioEl, TARGET_VOL, 280);
+    fadeToVolume(audioEl, TARGET_VOL, 250);
   }
 
-  // Fallback universal: kalau masih diblokir, unmute saat gesture pertama
-  function enableGestureFallbackUnmute(){
+  function enableOneTimeGestureUnlock(){
+    // Setelah user klik Allow, jika play() masih ditolak,
+    // gesture pertama berikutnya memicu tryPlayUnmutedNow (sekali saja).
     const events = ["pointerdown","pointerup","touchstart","touchend","click","keydown"];
     const unlock = () => {
-      tryPlayUnmutedNow();
+      if (allowed) tryPlayUnmutedNow();
       events.forEach(ev => document.removeEventListener(ev, unlock, true));
     };
     events.forEach(ev => document.addEventListener(ev, unlock, true));
   }
 
-  if (hasConsent()) {
-    // User pernah Allow → coba langsung bersuara, dan jaga dengan fallback gesture
-    tryPlayUnmutedNow();
-    enableGestureFallbackUnmute();
-  } else {
-    // Tampilkan modal izin (jika ada di HTML)
-    if (consentEl) consentEl.hidden = false;
+  // Tampilkan modal setiap kali (jika tersedia), kalau tidak ada modal—biarkan user pakai toggle manual
+  if (consentEl && allowBtn && laterBtn) {
+    consentEl.hidden = false;
 
-    allowBtn?.addEventListener("click", () => {
-      setConsent(true);
-      if (consentEl) consentEl.hidden = true;
-      // panggil play() sinkron di dalam handler gesture
+    allowBtn.addEventListener("click", () => {
+      allowed = true;
+      consentEl.hidden = true;
+      // panggil play() sinkron di handler gesture
       tryPlayUnmutedNow();
+      // kalau masih diblokir policy, gesture berikutnya akan unlock
+      enableOneTimeGestureUnlock();
     }, { once: true });
 
-    laterBtn?.addEventListener("click", () => {
-      setConsent(false);
-      if (consentEl) consentEl.hidden = true;
-      // tetap muted; user bisa toggle manual
+    laterBtn.addEventListener("click", () => {
+      allowed = false;        // tetap muted
+      consentEl.hidden = true;
+      // tidak memasang unlock—user bisa klik ikon musik jika ingin
     }, { once: true });
-
-    // tetap pasang fallback supaya jika user tap area lain pun tetap unlock
-    enableGestureFallbackUnmute();
   }
-
-  // Kembali ke tab → lanjutkan bila sudah consent
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && hasConsent() && audioEl.paused) {
-      try { audioEl.play(); } catch {}
-    }
-  });
 })();
 
 /* ==== Buka undangan (tanpa memutar musik; hanya UX) ==== */
@@ -275,9 +258,9 @@ fillEvent("akad", CONFIG.akad);
 
 /* ==== Countdown ==== */
 const $dd = q("#dd"),
-      $hh = q("#hh"),
-      $mm = q("#mm"),
-      $ss = q("#ss");
+  $hh = q("#hh"),
+  $mm = q("#mm"),
+  $ss = q("#ss");
 const TARGET = new Date(CONFIG.akad.start);
 function tick() {
   const now = new Date();
@@ -290,9 +273,9 @@ function tick() {
     clearInterval(t);
     return;
   }
-  const sec  = Math.floor(diff / 1000);
+  const sec = Math.floor(diff / 1000);
   const days = Math.floor(sec / 86400);
-  const hrs  = Math.floor((sec % 86400) / 3600);
+  const hrs = Math.floor((sec % 86400) / 3600);
   const mins = Math.floor((sec % 3600) / 60);
   const secs = sec % 60;
   $dd.textContent = String(days).padStart(2, "0");
@@ -300,7 +283,8 @@ function tick() {
   $mm.textContent = String(mins).padStart(2, "0");
   $ss.textContent = String(secs).padStart(2, "0");
 }
-const t = setInterval(tick, 1000); tick();
+const t = setInterval(tick, 1000);
+tick();
 
 /* ==== ICS (Add to Calendar) ==== */
 function toICSDate(d) {
@@ -317,9 +301,9 @@ function toICSDate(d) {
 }
 (function buildICS() {
   const title = `${CONFIG.bride} & ${CONFIG.groom} — Akad`;
-  const loc   = `${CONFIG.akad.place}, ${CONFIG.akad.addr}`;
+  const loc = `${CONFIG.akad.place}, ${CONFIG.akad.addr}`;
   const dtStartUTC = new Date(new Date(CONFIG.akad.start).toISOString());
-  const dtEndUTC   = new Date(new Date(CONFIG.akad.end).toISOString());
+  const dtEndUTC = new Date(new Date(CONFIG.akad.end).toISOString());
   const ics = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Undangan Maroon//ID
@@ -332,7 +316,9 @@ SUMMARY:${title}
 LOCATION:${loc}
 END:VEVENT
 END:VCALENDAR`;
+  // (opsional) pakai string ics di tombol "Add to Calendar"
 })();
+
 
 /* ==== Copy helper (data-copy-target) ==== */
 document.querySelectorAll("[data-copy-target]").forEach((btn) => {
