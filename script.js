@@ -29,7 +29,6 @@ const CONFIG = {
     map:   "https://maps.app.goo.gl/TXvQbkwDXwtKhZ5F7?g_st=ac"
   },
 
-  // Parameter nama tamu di URL: ?to=Nama%20Tamu
   guestParam: "to",
   defaultGuest: "Bapak/Ibu/Saudara/i"
 };
@@ -47,7 +46,7 @@ const body = document.body;
 /* ==== Util ==== */
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
-/* ==== Consent helpers (HARUS di atas pemakaian) ==== */
+/* ==== Consent helpers (HOISTED; WAJIB di atas pemakaian) ==== */
 const CONSENT_KEY = "bgm-consent-v1";
 const consentEl  = document.getElementById("soundConsent");
 const allowBtn   = document.getElementById("soundAllow");
@@ -101,8 +100,8 @@ function setConsent(v) {
     try { audioEl.play(); } catch {}
   });
 
-  // Helper fade volume
-  function fadeTo(target = TARGET_VOL, ms = 500){
+  // Fade util (scoped)
+  function fadeTo(target = TARGET_VOL, ms = 400){
     target = clamp01(target);
     const start = clamp01(audioEl.volume || 0);
     const t0 = performance.now();
@@ -117,26 +116,24 @@ function setConsent(v) {
   audioEl.addEventListener("play",  () => musicToggle?.classList.add("music-playing"));
   audioEl.addEventListener("pause", () => musicToggle?.classList.remove("music-playing"));
 
-  // Play muted seawal mungkin (boleh gagal)
+  // Coba play muted seawal mungkin (boleh gagal)
   audioEl.play().catch(()=>{});
+
+  const gestureEvents = ["pointerdown","pointerup","touchstart","touchend","click","keydown"];
 
   function tryPlayUnmutedNow(){
     audioEl.muted = false;
     try { audioEl.play(); } catch {}
-    fadeTo(TARGET_VOL, 500);
+    fadeTo(TARGET_VOL, 300);
   }
 
+  // Fallback universal: kalau masih diblokir, unmute saat gesture pertama
   function enableGestureFallbackUnmute(){
-    // Jika autoplay bersuara masih diblokir, unmute saat gesture pertama TANPA pop-up
     const unlock = () => {
       tryPlayUnmutedNow();
-      ["pointerdown","pointerup","touchstart","touchend","click","keydown"].forEach(ev =>
-        document.removeEventListener(ev, unlock, true)
-      );
+      gestureEvents.forEach(ev => document.removeEventListener(ev, unlock, true));
     };
-    ["pointerdown","pointerup","touchstart","touchend","click","keydown"].forEach(ev =>
-      document.addEventListener(ev, unlock, true)
-    );
+    gestureEvents.forEach(ev => document.addEventListener(ev, unlock, true));
   }
 
   if (hasConsent()) {
@@ -157,8 +154,11 @@ function setConsent(v) {
     laterBtn?.addEventListener("click", () => {
       setConsent(false);
       if (consentEl) consentEl.hidden = true;
-      // tetap muted; user bisa toggle manual dari ikon musik
+      // tetap muted; user bisa toggle manual
     }, { once: true });
+
+    // tetap pasang fallback supaya jika user tap area lain pun tetap unlock
+    enableGestureFallbackUnmute();
   }
 
   // Kembali ke tab → lanjutkan bila sudah consent
@@ -169,7 +169,7 @@ function setConsent(v) {
   });
 })();
 
-/* ==== Buka undangan (tanpa memutar musik) ==== */
+/* ==== Buka undangan (tanpa memutar musik; hanya UX) ==== */
 openBtn?.addEventListener("click", () => {
   cover.style.opacity = "0";
   setTimeout(() => cover.remove(), 350);
@@ -328,7 +328,6 @@ SUMMARY:${title}
 LOCATION:${loc}
 END:VEVENT
 END:VCALENDAR`;
-  // gunakan string ics di tombol "Add to Calendar" kalau diperlukan
 })();
 
 /* ==== Copy helper (data-copy-target) ==== */
