@@ -505,23 +505,42 @@
 }
 
 
-/* pattern from tile.svg — akan di-repeat */
+/* Event card: pattern tile – mobile safe */
 #event .card{
-  position:relative; overflow:hidden; border-radius:18px;
-  --tile: 25px;      /* kontrol kerapatan pola */
-  --strength: .60;   /* kuat/lemah pola */
-  --spot: .10;       /* spotlight lembut di tengah (opsional) */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;                 /* penting: layer blend aman di iOS */
+  --tile: 42px;                       /* skala pola */
+  --strength: .40;                    /* kekuatan pola */
+  --spot: .10;                         /* spotlight lembut */
 }
+
+/* layer pattern */
 #event .card::after{
-  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
+  content:"";
+  position:absolute; inset:0;
+  z-index:0; pointer-events:none; border-radius:inherit;
   background-image:
     radial-gradient(70% 90% at 50% 40%, rgba(246,231,185,var(--spot)), transparent 70%),
-    url("/assets/event_patern.svg"); /* ganti dgn nama file SVG-mu */
+    url("assets/event_patern.svg");     /* ganti dengan file tile kamu */
   background-repeat: no-repeat, repeat;
   background-position: center, center;
   background-size: 140% 100%, var(--tile) var(--tile);
   opacity: var(--strength);
+  mix-blend-mode: normal;             /* hindari soft-light di mobile */
+  transform: translateZ(0);           /* iOS paint fix */
 }
+
+/* konten di atas pola */
 #event .card > *{ position:relative; z-index:1; }
+
+/* mobile tuning – bikin lebih terlihat */
+@media (max-width: 700px){
+  #event .card{ --tile: 36px; --strength: .36; --spot: .12; }
+}
+@media (max-width: 420px){
+  #event .card{ --tile: 32px; --strength: .40; --spot: .14; }
+}
+
 
 
