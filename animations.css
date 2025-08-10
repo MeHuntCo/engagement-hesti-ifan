@@ -508,7 +508,7 @@
 /* pattern from tile.svg — akan di-repeat */
 #event .card{
   position:relative; overflow:hidden; border-radius:18px;
-  --tile: 60px;      /* kontrol kerapatan pola */
+  --tile: 25px;      /* kontrol kerapatan pola */
   --strength: .60;   /* kuat/lemah pola */
   --spot: .10;       /* spotlight lembut di tengah (opsional) */
 }
@@ -524,5 +524,5 @@
 }
 #event .card > *{ position:relative; z-index:1; }
 
-@media (max-width:768px){ #event .card{ --tile:36px; --strength:.20 } }
-@media (max-width:480px){ #event .card{ --tile:32px; --strength:.18 } }
+@media (max-width:768px){ #event .card{ --tile:25px; --strength:.60 } }
+@media (max-width:480px){ #event .card{ --tile:25px; --strength:.60 } }
