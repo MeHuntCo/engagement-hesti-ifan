@@ -315,6 +315,26 @@ document.querySelectorAll("[data-copy-target]").forEach((btn) => {
   });
 });
 
+
+(() => {
+  const KEY = "wishes-v1";
+  try {
+    // 1) Purge sekali saat load
+    localStorage.removeItem(KEY);
+
+    // 2) Monkey-patch agar script lama pun tak bisa baca/tulis key itu
+    const _get = localStorage.getItem.bind(localStorage);
+    const _set = localStorage.setItem.bind(localStorage);
+    const _rem = localStorage.removeItem.bind(localStorage);
+
+    localStorage.getItem = (k) => (k === KEY ? null : _get(k));
+    localStorage.setItem = (k, v) => (k === KEY ? undefined : _set(k, v));
+    localStorage.removeItem = (k) => (k === KEY ? undefined : _rem(k));
+  } catch (e) {
+    // Safari private mode / older browsers: diamkan saja
+  }
+})();
+
 /* ==== Guestbook (no localStorage) ==== */
 const STORAGE_KEY = "wishes-v1"; // tidak dipakai lagi, tapi biar nggak error di kode lain
 const form = q("#wishForm");
