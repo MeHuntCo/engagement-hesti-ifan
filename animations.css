@@ -524,5 +524,4 @@
 }
 #event .card > *{ position:relative; z-index:1; }
 
-@media (max-width:768px){ #event .card{ --tile:25px; --strength:.60 } }
-@media (max-width:480px){ #event .card{ --tile:25px; --strength:.60 } }
+
