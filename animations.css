@@ -515,6 +515,17 @@
   --spot: .10;                         /* spotlight lembut */
 }
 
+/* BASE: kasih nilai default + buat stacking context */
+#event .card{
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;          /* iOS fix */
+  border-radius: 18px;         /* opsional */
+  --tile: 42px;                /* default desktop */
+  --strength: .50;             /* default desktop */
+  --spot: .10;                 /* default desktop */
+}
+
 /* layer pattern */
 #event .card::after{
   content:"";
@@ -522,13 +533,13 @@
   z-index:0; pointer-events:none; border-radius:inherit;
   background-image:
     radial-gradient(70% 90% at 50% 40%, rgba(246,231,185,var(--spot)), transparent 70%),
-    url("assets/event_patern.svg");     /* ganti dengan file tile kamu */
+    url("assets/event_patern.svg");  /* <-- perhatikan ../ sesuai lokasi CSS */
   background-repeat: no-repeat, repeat;
   background-position: center, center;
   background-size: 140% 100%, var(--tile) var(--tile);
   opacity: var(--strength);
-  mix-blend-mode: normal;             /* hindari soft-light di mobile */
-  transform: translateZ(0);           /* iOS paint fix */
+  mix-blend-mode: normal;       /* hindari soft-light di mobile */
+  transform: translateZ(0);     /* iOS paint fix */
 }
 
 /* konten di atas pola */
@@ -536,11 +547,12 @@
 
 /* mobile tuning – bikin lebih terlihat */
 @media (max-width: 700px){
-  #event .card{ --tile: 36px; --strength: .36; --spot: .12; }
+  #event .card{ --tile: 36px; --strength: .50; --spot: .12; }
 }
 @media (max-width: 420px){
-  #event .card{ --tile: 32px; --strength: .40; --spot: .14; }
+  #event .card{ --tile: 32px; --strength: .50; --spot: .14; }
 }
+
 
 
 
