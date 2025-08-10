@@ -1,0 +1,51 @@
+<!-- Geometric Minimalist corners (tight to edges) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#f6e7b9"/>
+      <stop offset="50%"  stop-color="#e6c874"/>
+      <stop offset="100%" stop-color="#b78b2a"/>
+    </linearGradient>
+    <style>
+      .g{ stroke:url(#gold); fill:none; stroke-linecap:round; stroke-linejoin:round }
+      .l{ stroke-width:2.2; opacity:.85 }
+      .t{ fill:url(#gold); opacity:.8 }
+    </style>
+  </defs>
+
+  <!-- ===== TOP-LEFT (no inner translate, langsung menempel tepi) ===== -->
+  <g>
+    <path class="g l" d="M0,92 L0,0 L92,0"/>
+    <path class="g l" d="M0,64 L0,32 M32,0 L64,0" opacity=".55"/>
+    <path class="g l" d="M0,40 L40,0" opacity=".55"/>
+    <path class="g l" d="M0,92 L24,92 M92,0 L92,24" opacity=".4"/>
+    <polygon class="t" points="86,0 92,12 80,12"/>
+  </g>
+
+  <!-- ===== TOP-RIGHT ===== -->
+  <g transform="translate(1000,0) scale(-1,1)">
+    <path class="g l" d="M0,92 L0,0 L92,0"/>
+    <path class="g l" d="M0,64 L0,32 M32,0 L64,0" opacity=".55"/>
+    <path class="g l" d="M0,40 L40,0" opacity=".55"/>
+    <path class="g l" d="M0,92 L24,92 M92,0 L92,24" opacity=".4"/>
+    <polygon class="t" points="86,0 92,12 80,12"/>
+  </g>
+
+  <!-- ===== BOTTOM-RIGHT ===== -->
+  <g transform="translate(1000,600) scale(-1,-1)">
+    <path class="g l" d="M0,92 L0,0 L92,0"/>
+    <path class="g l" d="M0,64 L0,32 M32,0 L64,0" opacity=".55"/>
+    <path class="g l" d="M0,40 L40,0" opacity=".55"/>
+    <path class="g l" d="M0,92 L24,92 M92,0 L92,24" opacity=".4"/>
+    <polygon class="t" points="86,0 92,12 80,12"/>
+  </g>
+
+  <!-- ===== BOTTOM-LEFT ===== -->
+  <g transform="translate(0,600) scale(1,-1)">
+    <path class="g l" d="M0,92 L0,0 L92,0"/>
+    <path class="g l" d="M0,64 L0,32 M32,0 L64,0" opacity=".55"/>
+    <path class="g l" d="M0,40 L40,0" opacity=".55"/>
+    <path class="g l" d="M0,92 L24,92 M92,0 L92,24" opacity=".4"/>
+    <polygon class="t" points="86,0 92,12 80,12"/>
+  </g>
+</svg>

@@ -127,3 +127,60 @@
   io.observe(scene);
 })();
 
+
+
+openBtn?.addEventListener("click", () => {
+  cover.style.opacity = "0";
+  setTimeout(() => cover.remove(), 350);
+  body.classList.remove("no-scroll");
+  body.classList.add("main-open");
+  q("#hero")?.scrollIntoView({ behavior: "smooth" });
+
+  if (musicToggle) {
+    musicToggle.classList.add("pulse-music");
+    setTimeout(() => musicToggle.classList.remove("pulse-music"), 1200);
+  }
+});
+
+openBtn?.addEventListener("click", () => {
+  cover.style.opacity = "0";
+  setTimeout(() => cover.remove(), 350);
+  body.classList.remove("no-scroll");
+  body.classList.add("main-open");
+
+  const hero = q("#hero");
+  if (hero) {
+    // beri jeda kecil supaya animasi terasa setelah cover hilang
+    setTimeout(() => hero.classList.add("intro"), 180);
+    // optional: auto scroll ke hero
+    hero.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  if (musicToggle) {
+    musicToggle.classList.add("pulse-music");
+    setTimeout(() => musicToggle.classList.remove("pulse-music"), 1200);
+  }
+});
+
+
+// Reveal #date saat masuk viewport
+(() => {
+  const sec = document.getElementById('date');
+  if (!sec) return;
+
+  const activate = () => sec.classList.add('in');
+
+  if (!('IntersectionObserver' in window)) { // fallback browser lama
+    activate();
+    return;
+  }
+
+  const io = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      activate();
+      io.disconnect(); // sekali saja
+    }
+  }, { threshold: 0.3, rootMargin: "0px 0px -10% 0px" });
+
+  io.observe(sec);
+})();

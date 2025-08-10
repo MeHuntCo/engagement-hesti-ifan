@@ -1,75 +1,75 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Lipatan tirai maroon gelap (kiri) -->
+    <!-- Lipatan tirai lebih cerah (kiri) -->
     <linearGradient id="foldsLeft" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#1a0c0c"/>
-      <stop offset="1.5%" stop-color="#3f1c1c"/>
-      <stop offset="3%"   stop-color="#140808"/>
-      <stop offset="4.5%" stop-color="#4d2323"/>
-      <stop offset="6%"   stop-color="#1e0e0e"/>
-      <stop offset="8%"   stop-color="#5a2929"/>
-      <stop offset="10%"  stop-color="#210f0f"/>
-      <stop offset="13%"  stop-color="#4a1f1f"/>
-      <stop offset="16%"  stop-color="#160909"/>
-      <stop offset="20%"  stop-color="#3d1818"/>
-      <stop offset="24%"  stop-color="#140808"/>
-      <stop offset="28%"  stop-color="#562727"/>
-      <stop offset="33%"  stop-color="#291212"/>
-      <stop offset="40%"  stop-color="#462020"/>
-      <stop offset="48%"  stop-color="#1e0e0e"/>
-      <stop offset="56%"  stop-color="#512525"/>
-      <stop offset="64%"  stop-color="#2e1515"/>
-      <stop offset="72%"  stop-color="#442020"/>
-      <stop offset="82%"  stop-color="#2a1212"/>
-      <stop offset="92%"  stop-color="#4f2424"/>
-      <stop offset="100%" stop-color="#301616"/>
+      <stop offset="0%"   stop-color="#3a1616"/>
+      <stop offset="1.5%" stop-color="#241010"/>
+      <stop offset="3%"   stop-color="#1a0c0c"/>
+      <stop offset="4.5%" stop-color="#2e1414"/>
+      <stop offset="6%"   stop-color="#3a1616"/>
+      <stop offset="8%"   stop-color="#241010"/>
+      <stop offset="10%"  stop-color="#1a0c0c"/>
+      <stop offset="13%"  stop-color="#241010"/>
+      <stop offset="16%"  stop-color="#3a1616"/>
+      <stop offset="20%"  stop-color="#241010"/>
+      <stop offset="24%"  stop-color="#1a0c0c"/>
+      <stop offset="28%"  stop-color="#241010"/>
+      <stop offset="33%"  stop-color="#3a1616"/>
+      <stop offset="40%"  stop-color="#241010"/>
+      <stop offset="48%"  stop-color="#1a0c0c"/>
+      <stop offset="56%"  stop-color="#241010"/>
+      <stop offset="64%"  stop-color="#3a1616"/>
+      <stop offset="72%"  stop-color="#241010"/>
+      <stop offset="82%"  stop-color="#1a0c0c"/>
+      <stop offset="92%"  stop-color="#241010"/>
+      <stop offset="100%" stop-color="#3a1616"/>
     </linearGradient>
 
-    <!-- Lipatan tirai maroon gelap (kanan / mirror) -->
+    <!-- Lipatan tirai lebih cerah (kanan / mirror) -->
     <linearGradient id="foldsRight" x1="1" y1="0" x2="0" y2="0">
-      <stop offset="0%"   stop-color="#1a0c0c"/>
-      <stop offset="1.5%" stop-color="#3f1c1c"/>
-      <stop offset="3%"   stop-color="#140808"/>
-      <stop offset="4.5%" stop-color="#4d2323"/>
-      <stop offset="6%"   stop-color="#1e0e0e"/>
-      <stop offset="8%"   stop-color="#5a2929"/>
-      <stop offset="10%"  stop-color="#210f0f"/>
-      <stop offset="13%"  stop-color="#4a1f1f"/>
-      <stop offset="16%"  stop-color="#160909"/>
-      <stop offset="20%"  stop-color="#3d1818"/>
-      <stop offset="24%"  stop-color="#140808"/>
-      <stop offset="28%"  stop-color="#562727"/>
-      <stop offset="33%"  stop-color="#291212"/>
-      <stop offset="40%"  stop-color="#462020"/>
-      <stop offset="48%"  stop-color="#1e0e0e"/>
-      <stop offset="56%"  stop-color="#512525"/>
-      <stop offset="64%"  stop-color="#2e1515"/>
-      <stop offset="72%"  stop-color="#442020"/>
-      <stop offset="82%"  stop-color="#2a1212"/>
-      <stop offset="92%"  stop-color="#4f2424"/>
-      <stop offset="100%" stop-color="#301616"/>
+      <stop offset="0%"   stop-color="#3a1616"/>
+      <stop offset="1.5%" stop-color="#241010"/>
+      <stop offset="3%"   stop-color="#1a0c0c"/>
+      <stop offset="4.5%" stop-color="#2e1414"/>
+      <stop offset="6%"   stop-color="#3a1616"/>
+      <stop offset="8%"   stop-color="#241010"/>
+      <stop offset="10%"  stop-color="#1a0c0c"/>
+      <stop offset="13%"  stop-color="#241010"/>
+      <stop offset="16%"  stop-color="#3a1616"/>
+      <stop offset="20%"  stop-color="#241010"/>
+      <stop offset="24%"  stop-color="#1a0c0c"/>
+      <stop offset="28%"  stop-color="#241010"/>
+      <stop offset="33%"  stop-color="#3a1616"/>
+      <stop offset="40%"  stop-color="#241010"/>
+      <stop offset="48%"  stop-color="#1a0c0c"/>
+      <stop offset="56%"  stop-color="#241010"/>
+      <stop offset="64%"  stop-color="#3a1616"/>
+      <stop offset="72%"  stop-color="#241010"/>
+      <stop offset="82%"  stop-color="#1a0c0c"/>
+      <stop offset="92%"  stop-color="#241010"/>
+      <stop offset="100%" stop-color="#3a1616"/>
     </linearGradient>
 
-    <!-- Shading vertikal dramatis (dipakai di kedua sisi) -->
+    <!-- Shading vertikal dramatis -->
     <linearGradient id="vshade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="black" stop-opacity="0.25"/>
+      <stop offset="0%"   stop-color="black" stop-opacity="0.18"/>
       <stop offset="20%"  stop-color="black" stop-opacity="0.05"/>
       <stop offset="60%"  stop-color="black" stop-opacity="0.00"/>
-      <stop offset="90%"  stop-color="black" stop-opacity="0.12"/>
-      <stop offset="100%" stop-color="black" stop-opacity="0.25"/>
+      <stop offset="90%"  stop-color="black" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="black" stop-opacity="0.18"/>
     </linearGradient>
 
     <!-- Vignette samping kiri -->
     <linearGradient id="edgeLeft" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="black" stop-opacity="0.20"/>
-      <stop offset="6%"   stop-color="black" stop-opacity="0.06"/>
+      <stop offset="0%"   stop-color="black" stop-opacity="0.12"/>
+      <stop offset="6%"   stop-color="black" stop-opacity="0.05"/>
       <stop offset="100%" stop-color="black" stop-opacity="0"/>
     </linearGradient>
 
     <!-- Vignette samping kanan -->
     <linearGradient id="edgeRight" x1="1" y1="0" x2="0" y2="0">
-      <stop offset="0%"   stop-color="black" stop-opacity="0.20"/>
-      <stop offset="6%"   stop-color="black" stop-opacity="0.06"/>
+      <stop offset="0%"   stop-color="black" stop-opacity="0.12"/>
+      <stop offset="6%"   stop-color="black" stop-opacity="0.05"/>
       <stop offset="100%" stop-color="black" stop-opacity="0"/>
     </linearGradient>
   </defs>
