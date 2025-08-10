@@ -18,7 +18,7 @@ const CONFIG = {
   // musicLoopEnd: 42.5,
 
   // Kontak WA untuk RSVP (internasional tanpa '+')
-  waNumber: "6282324858528",
+  waNumber: "6281329394448",
 
   // Tanggal (ISO, +07:00 untuk WIB)
   akad: {

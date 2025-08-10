@@ -550,7 +550,7 @@
   #event .card{ --tile: 36px; --strength: .50; --spot: .12; }
 }
 @media (max-width: 420px){
-  #event .card{ --tile: 32px; --strength: .50; --spot: .14; }
+  #event .card{ --tile: 32px; --strength: .50 ; --spot: .14; }
 }
 
 
