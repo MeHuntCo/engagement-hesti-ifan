@@ -309,13 +309,13 @@ a{color:inherit;text-decoration:none}
 /* Mobile kecil: divider sangat pendek, aman dari tabrakan */
 @media (max-width: 420px){
   .hero__text{
-    --hero-divider-w: 78vw;
+    --hero-divider-w: 60vw;
     --hero-floral: 96px;
     --hero-gap: 8px;
   }
   #brideGroom{ margin-bottom:42px; }
   #brideGroom::after{ bottom:-22px; }
-  #brideGroom::after{ transform:translateX(-39%); }
+  #brideGroom::after{ transform:translateX(-76%); }
 }
 
 /* Ultra kecil: fallback mini—hanya chevron kecil di tengah */
