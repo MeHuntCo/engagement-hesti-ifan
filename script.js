@@ -315,28 +315,27 @@ document.querySelectorAll("[data-copy-target]").forEach((btn) => {
   });
 });
 
-/* ==== Guestbook (localStorage) ==== */
-const STORAGE_KEY = "wishes-v1";
+/* ==== Guestbook (no localStorage) ==== */
+const STORAGE_KEY = "wishes-v1"; // tidak dipakai lagi, tapi biar nggak error di kode lain
 const form = q("#wishForm");
 const list = q("#wishList");
 
-function loadWishes() {
-  let data = [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    data = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(data)) data = [];
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    data = [];
-  }
+// Variabel sementara di memori
+let wishesData = [];
 
+function loadWishes() {
   list.innerHTML = "";
 
   const escapeHTML = (v) =>
-    String(v ?? "").replace(/[&<>"']/g, (m) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+    String(v ?? "").replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[m]));
 
-  data.slice(-50).reverse().forEach((item) => {
+  wishesData.slice(-50).reverse().forEach((item) => {
     const name = escapeHTML(item?.name);
     const message = escapeHTML(item?.message);
     const li = document.createElement("li");
@@ -346,16 +345,10 @@ function loadWishes() {
 }
 
 function saveWish(w) {
-  let arr = [];
-  try {
-    arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    if (!Array.isArray(arr)) arr = [];
-  } catch { arr = []; }
-  arr.push({
+  wishesData.push({
     name: String(w.name ?? ""),
     message: String(w.message ?? "")
   });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
 }
 
 /* ==== RSVP submit → WhatsApp ==== */
